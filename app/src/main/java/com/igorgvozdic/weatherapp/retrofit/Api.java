@@ -26,8 +26,10 @@ public interface Api {
                                         @Query("APPID") String apiKey);
 
     @Headers("Content-Type: application/json")
-    @GET("forecast?q=london&units=metric&APPID=69deffc8e0fe1777c8695e7b68f8f6e6")
-    Call<ForecastFeed> getFiveDaysForecast();
+    @GET(FORECAST)
+    Call<ForecastFeed> getFiveDaysForecast(@Query("q") String city,
+                                           @Query("units") String units,
+                                           @Query("APPID") String apiKey);
 
 
 }

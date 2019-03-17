@@ -3,14 +3,18 @@ package com.igorgvozdic.weatherapp;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.igorgvozdic.weatherapp.model.ForecastFeed;
 import com.igorgvozdic.weatherapp.model.WeatherFeed;
 import com.igorgvozdic.weatherapp.retrofit.Api;
+
+import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 import retrofit2.Call;
@@ -45,33 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-//        Call<ForecastFeed> feedCall = api.getFiveDaysForecast();
-
-//        feedCall.enqueue(new Callback<ForecastFeed>() {
-//            @Override
-//            public void onResponse(Call<ForecastFeed> call, Response<ForecastFeed> response) {
-//                Log.i(TAG, "onResponse: ForecastFeed Successful");
-//
-//                ForecastFeed forecastFeed = response.body();
-//                Log.i(TAG, "onResponse: " + forecastFeed.getmCity().toString());
-//
-//                if (forecastFeed != null){
-//                    List<WeatherFeed> weatherFeeds = forecastFeed.getmForecast();
-//
-//                    for (WeatherFeed w : weatherFeeds){
-//                        Log.i(TAG, "onResponse: " + w.toString());
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<ForecastFeed> call, Throwable t) {
-//                Log.e(TAG, "onFailure: " + t.getMessage());
-//            }
-//        });
-
-
     private void fetchCurrentWeather() {
 
         Retrofit retrofit = new Retrofit.Builder()
@@ -88,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                 final String city = edtCity.getText().toString().trim();
 
                 Call<WeatherFeed> call = api.getCurrentWeather(city, Api.UNITS_METRIC, Api.API_KEY);
-                Log.i(TAG, "onCreate: " + call.request().toString());
+                Call<ForecastFeed> forecastFeedCall = api.getFiveDaysForecast(city, Api.UNITS_METRIC, Api.API_KEY);
 
                 call.enqueue(new Callback<WeatherFeed>() {
                     @Override
@@ -97,25 +74,29 @@ public class MainActivity extends AppCompatActivity {
 
                         WeatherFeed weatherFeed = response.body();
 
-                        Log.i(TAG, "onResponse: " + weatherFeed.toString());
+                        if (weatherFeed != null) {
 
-                        int currentTemp = (int) weatherFeed.getmMain().getmTemp();
-                        int maxTemp = (int) weatherFeed.getmMain().getmMaxTemp();
-                        int minTemp = (int) weatherFeed.getmMain().getmMinTemp();
-                        int pressure = (int) weatherFeed.getmMain().getmPressure();
-                        double wind = weatherFeed.getmWind().getmSpeed();
-                        String mainWeather = weatherFeed.getmWeather().get(0).getmMain();
+                            Log.i(TAG, "onResponse: " + weatherFeed.toString());
 
-                        loadImage(mainWeather);
+                            int currentTemp = (int) weatherFeed.getmMain().getmTemp();
+                            int maxTemp = (int) weatherFeed.getmMain().getmMaxTemp();
+                            int minTemp = (int) weatherFeed.getmMain().getmMinTemp();
+                            int pressure = (int) weatherFeed.getmMain().getmPressure();
+                            double wind = weatherFeed.getmWind().getmSpeed();
+                            String mainWeather = weatherFeed.getmWeather().get(0).getmMain();
 
-                        txtCurrentTemp.setText(Integer.toString(currentTemp) + "\u2103");
-                        txtMaxMinTemp.setText(Integer.toString(maxTemp) + "\u2103" + "/" + Integer.toString(minTemp) + "\u2103");
-                        txtPressure.setText(Integer.toString(pressure) + " mbar");
-                        txtWind.setText(Double.toString(wind) + " m/s");
-                        txtMainWeather.setText(mainWeather);
-                        txtCity.setText(city);
+                            loadImage(mainWeather);
 
-                        edtCity.setText("");
+                            txtCurrentTemp.setText(Integer.toString(currentTemp) + "\u2103");
+                            txtMaxMinTemp.setText(Integer.toString(maxTemp) + "\u2103" + "/" + Integer.toString(minTemp) + "\u2103");
+                            txtPressure.setText(Integer.toString(pressure) + " mbar");
+                            txtWind.setText(Double.toString(wind) + " m/s");
+                            txtMainWeather.setText(mainWeather);
+                            txtCity.setText(city);
+
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Not a valid city name. Please try again", Toast.LENGTH_LONG).show();
+                        }
                     }
 
                     @Override
@@ -126,11 +107,37 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+                forecastFeedCall.enqueue(new Callback<ForecastFeed>() {
+                    @Override
+                    public void onResponse(Call<ForecastFeed> call, Response<ForecastFeed> response) {
+
+                        ForecastFeed forecastFeed = response.body();
+                        if (forecastFeed != null) {
+                            List<WeatherFeed> weatherFeeds = forecastFeed.getmForecast();
+
+                            int index = 0;
+                            for (WeatherFeed w : weatherFeeds) {
+                                Log.i(TAG, "onResponse CURRENT INDEX: " + index++);
+                                Log.i(TAG, "onResponse: " + w.toString());
+                            }
+                        }
+
+                        edtCity.setText("");
+                        edtCity.onEditorAction(EditorInfo.IME_ACTION_DONE);
+                    }
+
+                    @Override
+                    public void onFailure(Call<ForecastFeed> call, Throwable t) {
+
+                    }
+                });
+
             }
         });
 
 
     }
+
 
     private void loadImage(String mainWeather) {
 
@@ -200,7 +207,6 @@ public class MainActivity extends AppCompatActivity {
         edtCity = findViewById(R.id.edtCity);
         imgWeather = findViewById(R.id.imgWeather);
         searchButton = findViewById(R.id.searchButton);
-
         txtCurrentTemp = findViewById(R.id.txtCurrentTemp);
         txtMaxMinTemp = findViewById(R.id.txtMaxMinTemp);
         txtPressure = findViewById(R.id.txtPressure);
