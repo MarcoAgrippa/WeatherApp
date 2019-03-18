@@ -10,8 +10,6 @@ import retrofit2.http.Query;
 
 public interface Api {
 
-    //http://api.openweathermap.org/data/2.5/weather?q=Belgrade&units=metric&APPID=69deffc8e0fe1777c8695e7b68f8f6e6
-
     String BASE_URL = "http://api.openweathermap.org/data/2.5/";
     String WEATHER = "weather";
     String FORECAST = "forecast";

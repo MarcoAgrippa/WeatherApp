@@ -3,6 +3,9 @@ package com.igorgvozdic.weatherapp.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class WeatherFeed {
@@ -60,7 +63,8 @@ public class WeatherFeed {
     }
 
     public String getmDate() {
-        return mDate;
+
+        return reformatDateTime();
     }
 
     @Override
@@ -75,4 +79,17 @@ public class WeatherFeed {
                 "\n, mDate='" + mDate + '\'' +
                 '}';
     }
+
+    private String reformatDateTime() {
+        Date date = null;
+        try {
+            date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(mDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        String formattedDate = new SimpleDateFormat("dd.MM.yyyy HH:mm").format(date);
+        return formattedDate;
+    }
+
+
 }

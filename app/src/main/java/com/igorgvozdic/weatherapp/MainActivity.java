@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.igorgvozdic.weatherapp.adapter.WeatherAdapter;
 import com.igorgvozdic.weatherapp.model.ForecastFeed;
 import com.igorgvozdic.weatherapp.model.WeatherFeed;
 import com.igorgvozdic.weatherapp.retrofit.Api;
@@ -17,6 +18,8 @@ import com.igorgvozdic.weatherapp.retrofit.Api;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -36,6 +39,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtWind;
     private TextView txtMainWeather;
     private TextView txtCity;
+    private TextView txtT;
+    private TextView txtMM;
+    private TextView txtPr;
+    private TextView txtWi;
+    private TextView txtCW;
+    private TextView txtForecast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,8 +96,15 @@ public class MainActivity extends AppCompatActivity {
 
                             loadImage(mainWeather);
 
+                            txtT.setText("t\u2103:");
+                            txtMM.setText("Max/Min t\u2103:");
+                            txtPr.setText("Pressure:");
+                            txtWi.setText("Wind:");
+                            txtCW.setText("Current Weather:");
+                            txtForecast.setText("~Forecast for 5 days, every 3 hours~");
+
                             txtCurrentTemp.setText(Integer.toString(currentTemp) + "\u2103");
-                            txtMaxMinTemp.setText(Integer.toString(maxTemp) + "\u2103" + "/" + Integer.toString(minTemp) + "\u2103");
+                            txtMaxMinTemp.setText(Integer.toString(maxTemp) + "\u2103" + " / " + Integer.toString(minTemp) + "\u2103");
                             txtPressure.setText(Integer.toString(pressure) + " mbar");
                             txtWind.setText(Double.toString(wind) + " m/s");
                             txtMainWeather.setText(mainWeather);
@@ -101,11 +117,15 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call<WeatherFeed> call, Throwable t) {
-                        Log.e(TAG, "onFailure: " + t.getMessage());
+
                         Toast.makeText(getApplicationContext(), "Sorry, we are not able to fetch the weather at the moment", Toast.LENGTH_LONG).show();
                         Toast.makeText(getApplicationContext(), "Please try latter ", Toast.LENGTH_SHORT).show();
                     }
                 });
+
+                final RecyclerView recyclerView = findViewById(R.id.recyclerview);
+                final LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext(), RecyclerView.VERTICAL, false);
+
 
                 forecastFeedCall.enqueue(new Callback<ForecastFeed>() {
                     @Override
@@ -113,13 +133,16 @@ public class MainActivity extends AppCompatActivity {
 
                         ForecastFeed forecastFeed = response.body();
                         if (forecastFeed != null) {
+
                             List<WeatherFeed> weatherFeeds = forecastFeed.getmForecast();
 
-                            int index = 0;
-                            for (WeatherFeed w : weatherFeeds) {
-                                Log.i(TAG, "onResponse CURRENT INDEX: " + index++);
-                                Log.i(TAG, "onResponse: " + w.toString());
-                            }
+                            recyclerView.setLayoutManager(layoutManager);
+
+                            WeatherAdapter adapter = new WeatherAdapter(getApplicationContext(), weatherFeeds);
+
+                            recyclerView.setAdapter(adapter);
+
+
                         }
 
                         edtCity.setText("");
@@ -144,17 +167,21 @@ public class MainActivity extends AppCompatActivity {
         switch (mainWeather) {
             case "Thunderstorm":
                 imgWeather.setImageResource(R.drawable.thunderstorm);
+                Toast.makeText(getApplicationContext(), "Unfortunately is seems it will!", Toast.LENGTH_LONG).show();
                 break;
             case "Drizzle":
                 imgWeather.setImageResource(R.drawable.drizzle);
+                Toast.makeText(getApplicationContext(), "Unfortunately is seems it will!", Toast.LENGTH_LONG).show();
                 break;
 
             case "Rain":
                 imgWeather.setImageResource(R.drawable.rain);
+                Toast.makeText(getApplicationContext(), "Unfortunately is seems it will!", Toast.LENGTH_LONG).show();
                 break;
 
             case "Snow":
                 imgWeather.setImageResource(R.drawable.snow);
+                Toast.makeText(getApplicationContext(), "It seems it won`t but it could snow!", Toast.LENGTH_LONG).show();
                 break;
 
             case "Mist":
@@ -195,10 +222,12 @@ public class MainActivity extends AppCompatActivity {
 
             case "Clear":
                 imgWeather.setImageResource(R.drawable.sun);
+                Toast.makeText(getApplicationContext(), "It seems it will be a clear day today!", Toast.LENGTH_LONG).show();
                 break;
 
             case "Clouds":
                 imgWeather.setImageResource(R.drawable.cloud);
+                Toast.makeText(getApplicationContext(), "It seems it won`t but it will be cloudy!", Toast.LENGTH_LONG).show();
                 break;
         }
     }
@@ -213,7 +242,16 @@ public class MainActivity extends AppCompatActivity {
         txtWind = findViewById(R.id.txtWind);
         txtMainWeather = findViewById(R.id.txtMainWeather);
         txtCity = findViewById(R.id.txtCity);
+
+        txtCW = findViewById(R.id.txtCW);
+        txtT = findViewById(R.id.txtT);
+        txtMM = findViewById(R.id.txtMM);
+        txtPr = findViewById(R.id.txtPr);
+        txtWi = findViewById(R.id.txtWi);
+        txtForecast = findViewById(R.id.txtForecast);
+
     }
+
 
 }
 
